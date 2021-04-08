@@ -1,11 +1,9 @@
-## lanproxy多用户版本（运营版）上线，欢迎体验
-
-https://nat.nioee.com
-
-## 技术交流QQ群 851869252
-
 lanproxy
 --------
+
+###原up主实在是修bug太慢,只能自己来了.
+####任意文件读取漏洞 CVE-2021-3019已修复,替换lib下同名jar包就好了,然后重启服务
+~~ 还是非常感谢原作者 ffay 提供这么简单易用的好项目
 
 [README](README_en.md) | [中文文档](README.md)
 
