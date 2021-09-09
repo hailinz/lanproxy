@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.RandomAccessFile;
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.util.Set;
 
 import org.fengfei.lanproxy.common.JsonUtil;
 
@@ -27,12 +28,19 @@ import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedNioFile;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
     private static final String PAGE_FOLDER = System.getProperty("app.home", System.getProperty("user.dir"))
             + "/webpages";
 
-    private static final String SERVER_VS = "LPS-0.1";
+    private static final String SERVER_VS = "nginx";
+
+    private Set<String> urlSet = URLHelper.generateURLMap(null,PAGE_FOLDER,PAGE_FOLDER);
+
+    private static Logger logger = LoggerFactory.getLogger(WebConfigContainer.class);
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
@@ -78,6 +86,7 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequ
         String uriPath = uri.getPath();
         uriPath = uriPath.equals("/") ? "/index.html" : uriPath;
         String path = PAGE_FOLDER + uriPath;
+
         File rfile = new File(path);
         if (rfile.isDirectory()) {
             path = path + "/index.html";
@@ -92,6 +101,12 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequ
 
         if (HttpHeaders.is100ContinueExpected(request)) {
             send100Continue(ctx);
+        }
+
+        if(!urlSet.contains(uriPath)){
+            status = HttpResponseStatus.FORBIDDEN;
+            outputContent(ctx, request, status.code(), status.toString(), "text/html");
+            return;
         }
 
         String mimeType = MimeType.getMimeType(MimeType.parseSuffix(path));
